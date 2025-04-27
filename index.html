@@ -3,65 +3,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script src="https://rawgit.com/mayognaise/aframe-html-shader/master/dist/aframe-html-shader.min.js"></script>
     <style>
       .social-icon {
         width: 30px;
         height: 30px;
         margin: 5px;
       }
-      #website-iframe {
-        width: 1024px;
-        height: 768px;
-        border: 0;
-        overflow: hidden;
-      }
     </style>
   </head>
+
   <body>
-    <a-scene mindar-image="imageTargetSrc:targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene
+      mindar-image="imageTargetSrc: targets.mind; filterMinCF: 0.001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
       <a-assets>
-        <iframe id="website-iframe" src="https://emodev.tech"></iframe>
-        <video id="company-video" autoplay loop="true" src="company-video.mp4"></video>
+        <!-- Load the GLB model -->
+        <a-asset-item id="company-model" src="your-model.glb"></a-asset-item>
+
         <img id="facebook-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/facebook.svg" />
         <img id="twitter-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/twitter.svg" />
         <img id="linkedin-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/linkedin.svg" />
         <img id="instagram-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/instagram.svg" />
+
+        <!-- Preload the video -->
+        <video id="promo-video" src="./Ambio Promo.mp4" preload="auto" crossorigin="anonymous" webkit-playsinline playsinline></video>
       </a-assets>
+
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Website text above the card -->
-        
-        <!-- Main website iframe ABOVE the card -->
-        <a-entity position="0 0.65 0.01">
-          <a-plane color="#FFFFFF" height="0.4" width="0.7" position="0 0 0">
-            <a-entity geometry="primitive: plane; height: 0.38; width: 0.68" position="0 0 0.001" material="shader: html; target: #website-iframe; transparent: true; ratio: width"></a-entity>
-          </a-plane>
-        </a-entity>
-        
+
+        <!-- GLB model ABOVE the card -->
+        <a-entity
+          gltf-model="./model.glb"
+          position="0 0.65 0.01"
+          scale="0.2 0.2 0.2" 
+          rotation="0 0 0"
+        ></a-entity>
+
         <!-- Contact and Email side by side ABOVE the card -->
         <a-entity position="0.85 0.65 0.01">
           <a-text value="Contact:" position="0 0 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
           <a-text value="Phone: +1 234 567 8900" position="0 -0.07 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
         </a-entity>
-        
+
         <a-entity position="1.15 0.65 0.01">
           <a-text value="Email:" position="0 0 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
           <a-text value="info@emodev.tech" position="0 -0.07 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
         </a-entity>
-        
+
         <!-- Video on the left side of the target -->
-        <a-video src="#company-video" position="-0.85 0.65 0.01" width="0.3" height="0.2"></a-video>
-        
-        <!-- Social icons in white on the right side of the target -->
+        <a-video
+          id="promo-video-entity"
+          src="#promo-video"
+          position="-0.75 0.65 0.01"
+          width="0.8"
+          height="0.7"
+          autoplay="false"
+          loop="true"
+          muted="false"
+          playsinline
+          webkit-playsinline
+        ></a-video>
+
+        <!-- Social icons on the right side -->
         <a-entity position="0.0 0.35 0.01">
-          <!-- Force white color with material component -->
           <a-image src="#facebook-icon" position="-0.09 0 0" width="0.05" height="0.05" material="color: white"></a-image>
           <a-image src="#twitter-icon" position="-0.03 0 0" width="0.05" height="0.05" material="color: white"></a-image>
           <a-image src="#linkedin-icon" position="0.03 0 0" width="0.05" height="0.05" material="color: white"></a-image>
           <a-image src="#instagram-icon" position="0.09 0 0" width="0.05" height="0.05" material="color: white"></a-image>
         </a-entity>
+
       </a-entity>
     </a-scene>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const videoEl = document.querySelector("#promo-video");
+
+        const sceneEl = document.querySelector("a-scene");
+
+        sceneEl.addEventListener("targetFound", () => {
+          console.log("Target found! Playing video...");
+          videoEl.play();
+        });
+
+        sceneEl.addEventListener("targetLost", () => {
+          console.log("Target lost! Pausing video...");
+          videoEl.pause();
+          videoEl.currentTime = 0; // Reset to start
+        });
+      });
+    </script>
   </body>
 </html>
