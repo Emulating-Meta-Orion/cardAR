@@ -21,16 +21,12 @@
       device-orientation-permission-ui="enabled: false"
     >
       <a-assets>
-        <!-- Load the GLB model -->
-        <a-asset-item id="company-model" src="your-model.glb"></a-asset-item>
-
-        <img id="facebook-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/facebook.svg" />
-        <img id="twitter-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/twitter.svg" />
-        <img id="linkedin-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/linkedin.svg" />
-        <img id="instagram-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/instagram.svg" />
-
         <!-- Preload the video -->
         <video id="promo-video" src="./Ambio Promo.mp4" preload="auto" crossorigin="anonymous" webkit-playsinline playsinline></video>
+        
+        <!-- Add social media icons -->
+        <img id="linkedin-icon" src="./path-to-linkedin-icon.png" crossorigin="anonymous">
+        <img id="instagram-icon" src="./path-to-instagram-icon.png" crossorigin="anonymous">
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -70,12 +66,25 @@
           webkit-playsinline
         ></a-video>
 
-        <!-- Social icons on the right side -->
         <a-entity position="0.0 0.35 0.01">
-          <a-image src="#facebook-icon" position="-0.09 0 0" width="0.05" height="0.05" material="color: white"></a-image>
-          <a-image src="#twitter-icon" position="-0.03 0 0" width="0.05" height="0.05" material="color: white"></a-image>
-          <a-image src="#linkedin-icon" position="0.03 0 0" width="0.05" height="0.05" material="color: white"></a-image>
-          <a-image src="#instagram-icon" position="0.09 0 0" width="0.05" height="0.05" material="color: white"></a-image>
+          <a-image 
+            src="#linkedin-icon" 
+            position="0.03 0 0" 
+            width="0.05" 
+            height="0.05" 
+            material="color: white"
+            class="clickable"
+            data-url="https://linkedin.com/company/your-company"
+          ></a-image>
+          <a-image 
+            src="#instagram-icon" 
+            position="0.09 0 0" 
+            width="0.05" 
+            height="0.05" 
+            material="color: white"
+            class="clickable"
+            data-url="https://instagram.com/your-account"
+          ></a-image>
         </a-entity>
 
       </a-entity>
@@ -84,8 +93,32 @@
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const videoEl = document.querySelector("#promo-video");
-
         const sceneEl = document.querySelector("a-scene");
+
+        // Add cursor and raycaster for interaction
+        const camera = document.querySelector('a-camera');
+        if (!camera.hasAttribute('cursor')) {
+          camera.setAttribute('cursor', {
+            rayOrigin: 'mouse',
+            fuse: false
+          });
+        }
+        if (!camera.hasAttribute('raycaster')) {
+          camera.setAttribute('raycaster', {
+            objects: '.clickable'
+          });
+        }
+
+        // Add click event listeners to social media icons
+        const clickableElements = document.querySelectorAll('.clickable');
+        clickableElements.forEach(element => {
+          element.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+              window.open(url, '_blank');
+            }
+          });
+        });
 
         sceneEl.addEventListener("targetFound", () => {
           console.log("Target found! Playing video...");
