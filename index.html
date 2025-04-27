@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,16 +10,74 @@
         height: 30px;
         margin: 5px;
       }
+      
+      /* Add a loading indicator */
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: Arial, sans-serif;
+        z-index: 999;
+      }
+      
+      .spinner {
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 5px solid white;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Instructions overlay */
+      #instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 0;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+        z-index: 998;
+      }
     </style>
   </head>
 
   <body>
+    <!-- Loading indicator -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Loading AR Experience...</div>
+    </div>
+    
+    <!-- Instructions overlay -->
+    <div id="instructions">
+      Point your camera at the business card to view AR content
+    </div>
+    
     <a-scene
       mindar-image="imageTargetSrc: targets.mind; filterMinCF: 0.001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
+      loading-screen="enabled: false"
     >
       <a-assets>
         <!-- Preload the video -->
@@ -29,7 +88,7 @@
         <img id="instagram-icon" src="./path-to-instagram-icon.png" crossorigin="anonymous">
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable; far: 100"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
 
@@ -66,71 +125,92 @@
           webkit-playsinline
         ></a-video>
 
+        <!-- Social media icons with clickable interactions -->
         <a-entity position="0.0 0.35 0.01">
-          <a-image 
-          src="#linkedin-icon" 
-          position="0.03 0 0" 
-          width="0.05" 
-          height="0.05" 
-          material="color: white"
-          class="clickable"
-          url="https://linkedin.com/company/your-company"
-        ></a-image>
-        <a-image 
-          src="#instagram-icon" 
-          position="0.09 0 0" 
-          width="0.05" 
-          height="0.05" 
-          material="color: white"
-          class="clickable"
-          url="https://instagram.com/your-account"
-        ></a-image>
-        
+          <a-plane 
+            class="clickable" 
+            position="0.03 0 0" 
+            width="0.07" 
+            height="0.07" 
+            opacity="0" 
+            data-url="https://linkedin.com/company/your-company">
+            <a-image 
+              src="#linkedin-icon" 
+              width="0.05" 
+              height="0.05" 
+              position="0 0 0.001"
+              material="color: white; transparent: true"
+            ></a-image>
+          </a-plane>
+          
+          <a-plane 
+            class="clickable" 
+            position="0.12 0 0" 
+            width="0.07" 
+            height="0.07" 
+            opacity="0" 
+            data-url="https://instagram.com/your-account">
+            <a-image 
+              src="#instagram-icon" 
+              width="0.05" 
+              height="0.05" 
+              position="0 0 0.001"
+              material="color: white; transparent: true"
+            ></a-image>
+          </a-plane>
         </a-entity>
 
       </a-entity>
     </a-scene>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const videoEl = document.querySelector("#promo-video");
-        const sceneEl = document.querySelector("a-scene");
-
-        // Add cursor and raycaster for interaction
-        const camera = document.querySelector('a-camera');
-        if (!camera.hasAttribute('cursor')) {
-          camera.setAttribute('cursor', {
-            rayOrigin: 'mouse',
-            fuse: false
-          });
-        }
-        if (!camera.hasAttribute('raycaster')) {
-          camera.setAttribute('raycaster', {
-            objects: '.clickable'
-          });
-        }
-
-        // Add click event listeners to social media icons
+      // Hide loading screen when the scene is loaded
+      const loadingScreen = document.getElementById('loading');
+      const instructionsDiv = document.getElementById('instructions');
+      const videoEl = document.querySelector("#promo-video");
+      const sceneEl = document.querySelector("a-scene");
+      
+      // When the scene is loaded
+      sceneEl.addEventListener("loaded", function() {
+        console.log("Scene loaded");
+        loadingScreen.style.display = "none";
+        
+        // Set up click listeners for clickable elements
+        setupClickListeners();
+      });
+      
+      // Function to set up click listeners
+      function setupClickListeners() {
         const clickableElements = document.querySelectorAll('.clickable');
         clickableElements.forEach(element => {
-          element.addEventListener('click', function() {
+          element.addEventListener('click', function(evt) {
             const url = this.getAttribute('data-url');
+            console.log("Element clicked with URL:", url);
             if (url) {
               window.open(url, '_blank');
             }
           });
         });
+      }
+      
+      // When target is found
+      sceneEl.addEventListener("targetFound", () => {
+        console.log("Target found! Playing video...");
+        videoEl.play();
+        instructionsDiv.style.display = "none";
+      });
 
-        sceneEl.addEventListener("targetFound", () => {
-          console.log("Target found! Playing video...");
-          videoEl.play();
-        });
-
-        sceneEl.addEventListener("targetLost", () => {
-          console.log("Target lost! Pausing video...");
-          videoEl.pause();
-          videoEl.currentTime = 0; // Reset to start
-        });
+      // When target is lost
+      sceneEl.addEventListener("targetLost", () => {
+        console.log("Target lost! Pausing video...");
+        videoEl.pause();
+        videoEl.currentTime = 0; // Reset to start
+        instructionsDiv.style.display = "block";
+      });
+      
+      // Additional debugging for click events
+      document.addEventListener('click', function(event) {
+        console.log("Document clicked at:", event.clientX, event.clientY);
       });
     </script>
   </body>
