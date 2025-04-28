@@ -189,6 +189,9 @@
         <img id="play-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%234CAF50" /><polygon points="9,7 9,17 17,12" fill="white" /></svg>' crossorigin="anonymous">
         
         <img id="pause-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%23F44336" /><rect x="8" y="7" width="3" height="10" fill="white" /><rect x="13" y="7" width="3" height="10" fill="white" /></svg>' crossorigin="anonymous">
+
+        <!-- Add the font to your assets if you want to use a custom font -->
+        <a-asset-item id="exo2bold" src="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
@@ -204,7 +207,7 @@
             height="0.1" 
             opacity="1" 
             material="src: #linkedin-texture; transparent: true"
-            ar-click-handler="url: https://linkedin.com/company/your-company"
+            ar-click-handler="url: https://linkedin.com/showcase/ambio"
           ></a-plane>
           
           <!-- Instagram icon -->
@@ -215,23 +218,53 @@
             height="0.1" 
             opacity="1" 
             material="src: #instagram-texture; transparent: true"
-            ar-click-handler="url: https://instagram.com/your-account"
+            ar-click-handler="url: https://instagram.com/theambio"
           ></a-plane>
-        </a-entity>
+          
+      
 
-        <!-- Beautiful email text right below social icons -->
-        <a-entity position="0 0.3 0.01">
-          <a-text 
-            value="info@emodev.tech" 
-            font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-            width="2"
-            color="#4285f4" 
-            align="center" 
-            scale="0.35 0.35 0.35"
-            baseline="center"
-          ></a-text>
+        <!-- Contact links row (side by side) below the icons -->
+        <a-entity position="0 0.1 0.01">
+          <!-- Email link on the left -->
+          <a-entity position="-0.1 0 0">
+            <a-plane 
+              class="clickable"
+              width="0.8"
+              height="0.1"
+              opacity="0"
+              ar-click-handler="url: mailto:contact@emodev.tech"
+            ></a-plane>
+            <a-text 
+              value="contact@emodev.tech" 
+              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+              width="2"
+              color="#4285f4" 
+              align="center" 
+              scale="0.35 0.35 0.35"
+              baseline="center"
+            ></a-text>
+          </a-entity>
+          
+          <!-- Website link on the right -->
+          <a-entity position="0.2 0 0">
+            <a-plane 
+              class="clickable"
+              width="0.8"
+              height="0.1"
+              opacity="0"
+              ar-click-handler="url: https://emodev.tech"
+            ></a-plane>
+            <a-text 
+              value="www.emodev.tech" 
+              font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+              width="2"
+              color="#4285f4" 
+              align="center" 
+              scale="0.35 0.35 0.35"
+              baseline="center"
+            ></a-text>
+          </a-entity>
         </a-entity>
-        
         <!-- 3D model on the left -->
         <a-entity
           id="model-container"
@@ -246,7 +279,7 @@
         </a-entity>
 
         <!-- Video with controls on the right -->
-        <a-entity position="0 0.7 0.01">
+        <a-entity position="0 0.6 0.01">
           <!-- Video plane -->
           <a-video
             id="video-plane"
