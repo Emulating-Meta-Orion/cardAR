@@ -5,13 +5,7 @@
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      .social-icon {
-        width: 30px;
-        height: 30px;
-        margin: 5px;
-      }
-      
-      /* Add a loading indicator */
+      /* Loading indicator */
       #loading {
         position: fixed;
         top: 0;
@@ -24,7 +18,7 @@
         justify-content: center;
         align-items: center;
         color: white;
-        font-family: Arial, sans-serif;
+        font-family: 'Montserrat', sans-serif;
         z-index: 999;
       }
       
@@ -53,9 +47,12 @@
         color: white;
         text-align: center;
         padding: 10px;
-        font-family: Arial, sans-serif;
+        font-family: 'Montserrat', sans-serif;
         z-index: 998;
       }
+
+      /* Import fancy font for email text */
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap');
     </style>
   </head>
 
@@ -71,6 +68,104 @@
       Point your camera at the business card to view AR content
     </div>
     
+    <!-- SVG Definitions for icons -->
+    <svg style="display: none;">
+      <!-- LinkedIn Icon -->
+      <symbol id="linkedin-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11.5" fill="#0A66C2" />
+        <path d="M8,19H5V9h3V19z M6.5,7.8C5.6,7.8,5,7.1,5,6.3c0-0.8,0.6-1.5,1.5-1.5s1.5,0.7,1.5,1.5C8,7.1,7.4,7.8,6.5,7.8z M20,19h-3v-5.3c0-1.5-0.5-2.7-2-2.7c-1.3,0-2,1-2,2.7V19h-3V9h3v1.2c0.7-0.7,1.7-1.2,3-1.2c3,0,4,2,4,4.5V19z" fill="white" />
+      </symbol>
+      
+      <!-- Instagram Icon -->
+      <symbol id="instagram-icon" viewBox="0 0 24 24">
+        <defs>
+          <radialGradient id="insta-gradient" cx="30%" cy="107%" r="150%">
+            <stop offset="0%" stop-color="#FED373"/>
+            <stop offset="25%" stop-color="#F15245"/>
+            <stop offset="50%" stop-color="#D92E7F"/>
+            <stop offset="75%" stop-color="#9B36B7"/>
+            <stop offset="100%" stop-color="#515ECF"/>
+          </radialGradient>
+        </defs>
+        <circle cx="12" cy="12" r="11.5" fill="url(#insta-gradient)" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="white" stroke-width="2" />
+        <circle cx="17" cy="7" r="1.5" fill="white" />
+        <rect x="7" y="7" width="10" height="10" rx="3" ry="3" fill="none" stroke="white" stroke-width="2" />
+      </symbol>
+      
+      <!-- Play Icon -->
+      <symbol id="play-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11.5" fill="#4CAF50" />
+        <polygon points="9,7 9,17 17,12" fill="white" />
+      </symbol>
+      
+      <!-- Pause Icon -->
+      <symbol id="pause-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11.5" fill="#F44336" />
+        <rect x="8" y="7" width="3" height="10" fill="white" />
+        <rect x="13" y="7" width="3" height="10" fill="white" />
+      </symbol>
+    </svg>
+    
+    <!-- Add custom A-Frame component for handling clicks -->
+    <script>
+      AFRAME.registerComponent('ar-click-handler', {
+        schema: {
+          url: {type: 'string', default: ''},
+          action: {type: 'string', default: ''}
+        },
+        
+        init: function() {
+          const data = this.data;
+          const el = this.el;
+          
+          // Use both click and touchend for better compatibility
+          el.addEventListener('click', this.handleEvent.bind(this));
+          el.addEventListener('touchend', this.handleEvent.bind(this));
+          
+          // Make sure the element is interactive
+          el.classList.add('clickable');
+        },
+        
+        handleEvent: function(evt) {
+          evt.preventDefault();
+          evt.stopPropagation();
+          
+          console.log("AR element clicked:", this.el);
+          console.log("Action:", this.data.action, "URL:", this.data.url);
+          
+          if (this.data.action === 'toggleVideo') {
+            const videoEl = document.querySelector("#promo-video");
+            if (!videoEl) {
+              console.error("Video element not found");
+              return;
+            }
+            
+            try {
+              if (videoEl.paused) {
+                videoEl.play()
+                  .then(() => {
+                    console.log("Video started playing");
+                    document.querySelector("#play-pause-btn").setAttribute('material', 'src', '#pause-texture');
+                  })
+                  .catch(err => console.error("Error playing video:", err));
+              } else {
+                videoEl.pause();
+                console.log("Video paused");
+                document.querySelector("#play-pause-btn").setAttribute('material', 'src', '#play-texture');
+              }
+            } catch (err) {
+              console.error("Video control error:", err);
+            }
+          } 
+          else if (this.data.url) {
+            console.log("Opening URL:", this.data.url);
+            window.open(this.data.url, '_blank', 'noopener,noreferrer');
+          }
+        }
+      });
+    </script>
+    
     <a-scene
       mindar-image="imageTargetSrc: targets.mind; filterMinCF: 0.001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;"
       color-space="sRGB"
@@ -80,137 +175,158 @@
       loading-screen="enabled: false"
     >
       <a-assets>
-        <!-- Preload the video -->
-        <video id="promo-video" src="./Ambio Promo.mp4" preload="auto" crossorigin="anonymous" webkit-playsinline playsinline></video>
+        <!-- 3D model -->
+        <a-asset-item id="company-model" src="./model.glb"></a-asset-item>
+
+        <!-- Promo video -->
+        <video id="promo-video" src="./Ambio Promo.mp4" preload="auto" crossorigin="anonymous" webkit-playsinline playsinline loop></video>
         
-        <!-- Add social media icons -->
-        <img id="linkedin-icon" src="./path-to-linkedin-icon.png" crossorigin="anonymous">
-        <img id="instagram-icon" src="./path-to-instagram-icon.png" crossorigin="anonymous">
+        <!-- SVG textures using embedded SVG icons -->
+        <img id="linkedin-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%230A66C2" /><path d="M8,19H5V9h3V19z M6.5,7.8C5.6,7.8,5,7.1,5,6.3c0-0.8,0.6-1.5,1.5-1.5s1.5,0.7,1.5,1.5C8,7.1,7.4,7.8,6.5,7.8z M20,19h-3v-5.3c0-1.5-0.5-2.7-2-2.7c-1.3,0-2,1-2,2.7V19h-3V9h3v1.2c0.7-0.7,1.7-1.2,3-1.2c3,0,4,2,4,4.5V19z" fill="white" /></svg>' crossorigin="anonymous">
+        
+        <img id="instagram-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%23E1306C" /><circle cx="12" cy="12" r="3" fill="none" stroke="white" stroke-width="2" /><circle cx="17" cy="7" r="1.5" fill="white" /><rect x="7" y="7" width="10" height="10" rx="3" ry="3" fill="none" stroke="white" stroke-width="2" /></svg>' crossorigin="anonymous">
+        
+        <img id="play-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%234CAF50" /><polygon points="9,7 9,17 17,12" fill="white" /></svg>' crossorigin="anonymous">
+        
+        <img id="pause-texture" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11.5" fill="%23F44336" /><rect x="8" y="7" width="3" height="10" fill="white" /><rect x="13" y="7" width="3" height="10" fill="white" /></svg>' crossorigin="anonymous">
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable; far: 100"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-
-        <!-- GLB model ABOVE the card -->
-        <a-entity
-          gltf-model="./model.glb"
-          position="0 0.65 0.01"
-          scale="0.2 0.2 0.2" 
-          rotation="90 0 0"
-        ></a-entity>
-
-        <!-- Contact and Email side by side ABOVE the card -->
-        <a-entity position="0.85 0.65 0.01">
-          <a-text value="Contact:" position="0 0 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
-          <a-text value="Phone: +1 234 567 8900" position="0 -0.07 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
-        </a-entity>
-
-        <a-entity position="1.15 0.65 0.01">
-          <a-text value="Email:" position="0 0 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
-          <a-text value="info@emodev.tech" position="0 -0.07 0" width="1" color="white" align="left" scale="0.5 0.5 0.5"></a-text>
-        </a-entity>
-
-        <!-- Video on the left side of the target -->
-        <a-video
-          id="promo-video-entity"
-          src="#promo-video"
-          position="-0.75 0.65 0.01"
-          width="0.8"
-          height="0.7"
-          autoplay="false"
-          loop="true"
-          muted="false"
-          playsinline
-          webkit-playsinline
-        ></a-video>
-
-        <!-- Social media icons with clickable interactions -->
-        <a-entity position="0.0 0.35 0.01">
+        <!-- Social media icons at the top -->
+        <a-entity position="0 0.4 0.01">
+          <!-- LinkedIn icon -->
           <a-plane 
             class="clickable" 
-            position="0.03 0 0" 
-            width="0.07" 
-            height="0.07" 
-            opacity="0" 
-            data-url="https://linkedin.com/company/your-company">
-            <a-image 
-              src="#linkedin-icon" 
-              width="0.05" 
-              height="0.05" 
-              position="0 0 0.001"
-              material="color: white; transparent: true"
-            ></a-image>
-          </a-plane>
+            position="-0.15 0 0" 
+            width="0.1" 
+            height="0.1" 
+            opacity="1" 
+            material="src: #linkedin-texture; transparent: true"
+            ar-click-handler="url: https://linkedin.com/company/your-company"
+          ></a-plane>
           
+          <!-- Instagram icon -->
           <a-plane 
             class="clickable" 
-            position="0.12 0 0" 
-            width="0.07" 
-            height="0.07" 
-            opacity="0" 
-            data-url="https://instagram.com/your-account">
-            <a-image 
-              src="#instagram-icon" 
-              width="0.05" 
-              height="0.05" 
-              position="0 0 0.001"
-              material="color: white; transparent: true"
-            ></a-image>
-          </a-plane>
+            position="0.15 0 0" 
+            width="0.1" 
+            height="0.1" 
+            opacity="1" 
+            material="src: #instagram-texture; transparent: true"
+            ar-click-handler="url: https://instagram.com/your-account"
+          ></a-plane>
         </a-entity>
 
+        <!-- Beautiful email text right below social icons -->
+        <a-entity position="0 0.3 0.01">
+          <a-text 
+            value="info@emodev.tech" 
+            font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+            width="2"
+            color="#4285f4" 
+            align="center" 
+            scale="0.35 0.35 0.35"
+            baseline="center"
+          ></a-text>
+        </a-entity>
+        
+        <!-- 3D model on the left -->
+        <a-entity
+          id="model-container"
+          position="-0.55 0.65 0.01"
+          rotation="0 0 0"
+        >
+          <a-entity
+            gltf-model="#company-model"
+            scale="0.2 0.2 0.2"
+            rotation="90 0 0"
+          ></a-entity>
+        </a-entity>
+
+        <!-- Video with controls on the right -->
+        <a-entity position="0 0.7 0.01">
+          <!-- Video plane -->
+          <a-video
+            id="video-plane"
+            src="#promo-video"
+            width="0.8"
+            height="0.45"
+            position="0 0 0"
+          ></a-video>
+          
+          <!-- Play/Pause button -->
+          <a-entity id="video-controls" position="0 -0.25 0">
+            <a-plane
+              id="play-pause-btn"
+              class="clickable"
+              width="0.15"
+              height="0.15"
+              material="src: #play-texture; transparent: true"
+              position="0 0 0"
+              ar-click-handler="action: toggleVideo"
+            ></a-plane>
+          </a-entity>
+        </a-entity>
       </a-entity>
     </a-scene>
 
     <script>
-      // Hide loading screen when the scene is loaded
-      const loadingScreen = document.getElementById('loading');
-      const instructionsDiv = document.getElementById('instructions');
-      const videoEl = document.querySelector("#promo-video");
-      const sceneEl = document.querySelector("a-scene");
-      
-      // When the scene is loaded
-      sceneEl.addEventListener("loaded", function() {
-        console.log("Scene loaded");
-        loadingScreen.style.display = "none";
+      document.addEventListener("DOMContentLoaded", function() {
+        // Elements
+        const loadingScreen = document.getElementById("loading");
+        const instructionsDiv = document.getElementById("instructions");
+        const sceneEl = document.querySelector("a-scene");
+        const videoEl = document.querySelector("#promo-video");
+        const playPauseBtn = document.querySelector("#play-pause-btn");
         
-        // Set up click listeners for clickable elements
-        setupClickListeners();
-      });
-      
-      // Function to set up click listeners
-      function setupClickListeners() {
-        const clickableElements = document.querySelectorAll('.clickable');
-        clickableElements.forEach(element => {
-          element.addEventListener('click', function(evt) {
-            const url = this.getAttribute('data-url');
-            console.log("Element clicked with URL:", url);
-            if (url) {
-              window.open(url, '_blank');
-            }
+        // When the scene is loaded
+        sceneEl.addEventListener("loaded", function() {
+          console.log("Scene loaded");
+          loadingScreen.style.display = "none";
+          
+          // Initialize video state
+          videoEl.pause();
+          playPauseBtn.setAttribute('material', 'src', '#play-texture');
+          
+          // Log all clickable elements for debugging
+          console.log("Interactive elements:", document.querySelectorAll('.clickable'));
+        });
+        
+        // When target is found
+        sceneEl.addEventListener("targetFound", () => {
+          console.log("Target found!");
+          instructionsDiv.style.display = "none";
+          
+          // Removed autoplay attempt - video will stay paused until user clicks play
+          videoEl.pause();
+          playPauseBtn.setAttribute('material', 'src', '#play-texture');
+        });
+
+        // When target is lost
+        sceneEl.addEventListener("targetLost", () => {
+          console.log("Target lost!");
+          videoEl.pause();
+          playPauseBtn.setAttribute('material', 'src', '#play-texture');
+          instructionsDiv.style.display = "block";
+        });
+        
+        // Add direct click handlers to clickable elements for debugging
+        document.querySelectorAll('.clickable').forEach(el => {
+          el.addEventListener('click', function(e) {
+            console.log('Direct click on element:', this);
           });
         });
-      }
-      
-      // When target is found
-      sceneEl.addEventListener("targetFound", () => {
-        console.log("Target found! Playing video...");
-        videoEl.play();
-        instructionsDiv.style.display = "none";
-      });
-
-      // When target is lost
-      sceneEl.addEventListener("targetLost", () => {
-        console.log("Target lost! Pausing video...");
-        videoEl.pause();
-        videoEl.currentTime = 0; // Reset to start
-        instructionsDiv.style.display = "block";
-      });
-      
-      // Additional debugging for click events
-      document.addEventListener('click', function(event) {
-        console.log("Document clicked at:", event.clientX, event.clientY);
+        
+        // Mobile touch handling - important for mobile devices
+        document.addEventListener('touchstart', function(e) {
+          if (e.target.closest('.a-canvas')) {
+            // Don't prevent default completely as it might interfere with raycaster
+            // Instead, just stop propagation
+            e.stopPropagation();
+          }
+        }, {passive: true});
       });
     </script>
   </body>
